@@ -1,0 +1,18 @@
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTY1YTJiMmIyNTE5MGUyNzlmYjYyZGQiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3MDExNTk2MDJ9.8fHKPQrW3P93w1gCzGK8Ck7lMmGEllGb4i0gYJhtiTc",
+  "username": "admin",
+  "userId": "6565a2b2b25190e279fb62dd",
+  "isAdmin": true,
+  "user": {
+    "username": "admin",
+    "email": "ceddit@admin.com",
+    "password": "$2b$10$HvCG4lDSFJToHRnkzj1g3.OyfnZn34GpuYG9xg1rH.Wm6SGwp60AC",
+    "posts": [],
+    "subscribedSubs": [],
+    "isAdmin": true,
+    "_id": "6565a2b2b25190e279fb62dd",
+    "createdAt": "2023-11-28T08:20:02.262Z",
+    "updatedAt": "2023-11-28T08:20:02.262Z",
+    "__v": 0
+  }
+}

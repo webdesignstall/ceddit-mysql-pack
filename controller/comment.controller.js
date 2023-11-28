@@ -73,7 +73,7 @@ const getPostComments = async (req, res) => {
       }
     }
 
-    return res.status(200).json(rootComments);
+    return res.status(200).json(comments);
   } catch (err) {
     console.error(err);
     return res
