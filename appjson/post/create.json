@@ -1,0 +1,16 @@
+{
+  "user": "6565a2b2b25190e279fb62dd",
+  "community": "6565a650fc9c498805ee72d1",
+  "title": "Post 1",
+  "content": "Post 1 content",
+  "imageUrl": "https://www.littlethings.info/wp-content/uploads/2014/04/dummy-image-green-e1398449160839.jpg",
+  "upvotedBy": [
+    "6565a2b2b25190e279fb62dd"
+  ],
+  "downvotedBy": [],
+  "commentCount": 0,
+  "_id": "6565a6bdfc9c498805ee72d4",
+  "createdAt": "2023-11-28T08:37:17.237Z",
+  "updatedAt": "2023-11-28T08:37:17.237Z",
+  "__v": 0
+}

@@ -1,0 +1,14 @@
+{
+  "admin": "6565a2b2b25190e279fb62dd",
+  "name": "Mern Stack",
+  "bio": "Mern stack community description",
+  "posts": [],
+  "subscribedBy": [
+    "6565a2b2b25190e279fb62dd"
+  ],
+  "subscriberCount": 1,
+  "_id": "6565a650fc9c498805ee72d1",
+  "createdAt": "2023-11-28T08:35:28.439Z",
+  "updatedAt": "2023-11-28T08:35:28.439Z",
+  "__v": 0
+}

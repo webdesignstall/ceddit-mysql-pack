@@ -1,0 +1,59 @@
+{
+  "community": {
+    "_id": "6565a650fc9c498805ee72d1",
+    "admin": "6565a2b2b25190e279fb62dd",
+    "name": "Mern Stack",
+    "bio": "Mern stack community description",
+    "posts": [
+      {
+        "_id": "6565a6bdfc9c498805ee72d4",
+        "user": {
+          "_id": "6565a2b2b25190e279fb62dd",
+          "username": "admin",
+          "email": "ceddit@admin.com",
+          "password": "$2b$10$HvCG4lDSFJToHRnkzj1g3.OyfnZn34GpuYG9xg1rH.Wm6SGwp60AC",
+          "posts": [],
+          "subscribedSubs": [],
+          "isAdmin": true,
+          "createdAt": "2023-11-28T08:20:02.262Z",
+          "updatedAt": "2023-11-28T08:20:02.262Z",
+          "__v": 0
+        },
+        "community": {
+          "_id": "6565a650fc9c498805ee72d1",
+          "admin": "6565a2b2b25190e279fb62dd",
+          "name": "Mern Stack",
+          "bio": "Mern stack community description",
+          "posts": [
+            "6565a6bdfc9c498805ee72d4"
+          ],
+          "subscribedBy": [
+            "6565a2b2b25190e279fb62dd"
+          ],
+          "subscriberCount": 1,
+          "createdAt": "2023-11-28T08:35:28.439Z",
+          "updatedAt": "2023-11-28T08:37:17.289Z",
+          "__v": 1
+        },
+        "title": "Post 1",
+        "content": "Post 1 content",
+        "imageUrl": "https://www.littlethings.info/wp-content/uploads/2014/04/dummy-image-green-e1398449160839.jpg",
+        "upvotedBy": [
+          "6565a2b2b25190e279fb62dd"
+        ],
+        "downvotedBy": [],
+        "commentCount": 0,
+        "createdAt": "2023-11-28T08:37:17.237Z",
+        "updatedAt": "2023-11-28T08:37:17.237Z",
+        "__v": 0
+      }
+    ],
+    "subscribedBy": [
+      "6565a2b2b25190e279fb62dd"
+    ],
+    "subscriberCount": 1,
+    "createdAt": "2023-11-28T08:35:28.439Z",
+    "updatedAt": "2023-11-28T08:37:17.289Z",
+    "__v": 1
+  }
+}
