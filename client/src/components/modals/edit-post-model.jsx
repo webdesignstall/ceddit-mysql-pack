@@ -24,7 +24,7 @@ import { updatePost } from "../../api/posts";
 export const EditPostModel = ({ post }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-
+  console.log(post)
   const [form, setForm] = useState({
     title: post?.title || "",
     content: post?.content || "",
