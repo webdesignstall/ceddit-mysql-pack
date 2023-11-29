@@ -1,31 +1,50 @@
 const Community = require("../model/community.model");
 const Post = require("../model/post.model");
+const { PrismaClient } = require('../prisma/generated/client')
 
+const prisma = new PrismaClient()
 const createCommunity = async (req, res) => {
   try {
     const { name, bio } = req.body;
-    const userId = req.user.userId;
-
+    const userId = parseInt(req.user.userId);
+    console.log(req.user)
     if (!name || !bio) {
       return res.status(400).json({ error: "Both name and bio are required" });
     }
 
-    const existingCommunity = await Community.findOne({
+    /*const existingCommunity = await Community.findOne({
       $or: [{ name }],
+    });*/
+
+    const existingCommunity = await prisma.community.findFirst({
+      where: {
+        OR: [{ name }]
+      }
     });
 
-    console.log("existingCommunity: ", existingCommunity);
+
 
     if (existingCommunity) {
       return res.status(400).json({ error: "Community name must be unique" });
     }
 
-    const community = await Community.create({
+   /* const community = await Community.create({
       name,
       bio,
       admin: userId,
       subscribedBy: [userId],
+    });*/
+
+
+
+    const community = await prisma.community.create({
+      data: {
+        name,
+        bio,
+        adminId: userId,
+      },
     });
+
 
     res.json(community);
   } catch (err) {
@@ -34,10 +53,10 @@ const createCommunity = async (req, res) => {
 };
 
 const getCommunityPosts = async (req, res) => {
-  const communityId = req.params.id;
+  const communityId = parseInt(req.params.id);
 
   try {
-    const community = await Community.findById(communityId)
+    /*const community = await Community.findById(communityId)
       .populate({
         path: "posts",
         populate: {
@@ -51,7 +70,27 @@ const getCommunityPosts = async (req, res) => {
           path: "community",
           model: "community",
         },
-      });
+      });*/
+
+
+    const community = await prisma.community.findUnique({
+      where: { id: communityId },
+      include: {
+        posts: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true
+              }
+            },
+            community: true,
+          },
+        },
+      },
+    });
+
 
     if (!community) {
       return res.status(404).json({ error: "Community not found" });
@@ -66,9 +105,40 @@ const getCommunityPosts = async (req, res) => {
 
 const getAllCommunities = async (req, res) => {
   try {
-    const communities = await Community.find();
+    // const communities = await Community.find();
+    /*const communities = await prisma.community.findMany();*/
 
-    return res.json({ communities });
+    const communities = await prisma.community.findMany({
+      include: {
+        posts: {
+          select: {
+            id: true
+          }
+        },
+        communitySubscriber: {
+          select: {
+            userId: true
+          }
+        }
+      }
+    });
+
+    const formattedCommunities = communities.map((community) => {
+      return {
+        _id: community.id,
+        adminId: community.adminId,
+        name: community.name,
+        bio: community.bio,
+        createdAt: community.createdAt,
+        updatedAt: community.updatedAt,
+        posts: community.posts,
+        subscribedBy: community.communitySubscriber.map((subscriber) => subscriber.userId),
+        subscriberCount: community.subscriberCount
+      };
+    });
+
+
+    return res.json({ communities: formattedCommunities });
   } catch (error) {
     console.error(`Error getting communities: ${error.message}`);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -76,33 +146,76 @@ const getAllCommunities = async (req, res) => {
 };
 
 const subscribedToCommunity = async (req, res) => {
-  const userId = req.user.userId;
-  const communityId = req.params.id;
+  const userId = parseInt(req.user.userId);
+  const communityId = parseInt(req.params.id);
 
   try {
-    const community = await Community.findById(communityId);
+    // const community = await Community.findById(communityId);
+    const community = await prisma.community.findFirst({where: {id: communityId}, include: {
+        communitySubscriber: {
+          where: { userId: userId } // Optionally, add a filter to check for a specific user
+        }
+      }});
 
     if (!community) {
       return res.status(404).json({ error: "Community not found" });
     }
 
-    const isSubscribed = community.subscribedBy.includes(userId);
+    // const isSubscribed = community.communitySubscriber.some(subscriber => subscriber.userId === userId);
+    const isSubscribed = community.communitySubscriber.length > 0;
 
     if (isSubscribed) {
-      community.subscribedBy = community.subscribedBy.filter(
+     /* community.subscribedBy = community.subscribedBy.filter(
         (id) => id.toString() !== userId
       );
       community.subscriberCount -= 1;
-      await community.save();
+      await community.save();*/
+
+      community.communitySubscriber = community.communitySubscriber.filter(
+          (subscriber) => subscriber.userId !== userId
+      );
+
+      // Update the subscriberCount
+      const updatedCommunity = await prisma.community.update({
+        where: {
+          id: communityId,
+        },
+        data: {
+          subscriberCount: {
+            decrement: 1,
+          },
+        },
+      });
+
+
+      await prisma.communitySubscriber.deleteMany({where: {userId: userId, communityId: communityId}})
+
       return res
         .status(200)
         .json({ message: "Successfully unsubscribed from the community" });
     }
 
-    community.subscribedBy.push(userId);
+    /*community.subscribedBy.push(userId);
     community.subscriberCount += 1;
 
-    await community.save();
+    await community.save();*/
+
+    const updatedCommunity = await prisma.community.update({
+      where: { id: communityId },
+      data: {
+        communitySubscriber: {
+          create: { userId: userId },
+        },
+        subscriberCount: {
+          increment: 1,
+        },
+      },
+    });
+
+   /* await prisma.communitySubscriber.create({data: {
+        userId: userId,
+        communityId: communityId
+      }})*/
 
     return res
       .status(200)
@@ -114,23 +227,61 @@ const subscribedToCommunity = async (req, res) => {
 };
 const getTop10 = async (req, res) => {
   try {
-    const topCommunities = await Community.find()
+  /*  const topCommunities = await Community.find()
       .sort({ subscriberCount: -1 })
-      .limit(10);
+      .limit(10);*/
 
-    return res.status(200).json({ communities: topCommunities });
+
+    const communities = await prisma.community.findMany({
+      include: {
+        posts: {
+          select: {
+            id: true
+          }
+        },
+        communitySubscriber: {
+          select: {
+            userId: true
+          }
+        }
+      },
+      take: 10,
+      orderBy: {
+        subscriberCount: 'desc'
+      }
+    });
+
+    const formattedCommunities = communities.map((community) => {
+      return {
+        _id: community.id,
+        adminId: community.adminId,
+        name: community.name,
+        bio: community.bio,
+        createdAt: community.createdAt,
+        updatedAt: community.updatedAt,
+        posts: community.posts,
+        subscribedBy: community.communitySubscriber.map((subscriber) => subscriber.userId),
+        subscriberCount: community.subscriberCount
+      };
+    });
+
+
+    // return res.json({ communities: formattedCommunities });
+
+    return res.status(200).json({ communities: formattedCommunities });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
 const deleteCommunity = async (req, res) => {
-  const communityId = req.params.id;
+  const communityId = parseInt(req.params.id);
 
   try {
-    const community = await Community.findById(communityId);
+    // const community = await Community.findById(communityId);
+    const community = await prisma.community.findFirst({ where: {id: communityId}});
     const posts =await Post.find({ community:communityId})
-console.log(posts)
+
     if (!community) {
       return res.status(404).json({ error: "Community not found" });
     }
@@ -143,8 +294,13 @@ console.log(posts)
     //   });
     // }
 
-    await Community.deleteOne({ _id: communityId });
-    await Post.deleteMany({ community: communityId });
+   /* await Community.deleteOne({ _id: communityId });
+    await Post.deleteMany({ community: communityId });*/
+
+    await prisma.post.deleteMany({ where: { communityId: communityId } });
+    await prisma.community.delete({ where: { id: communityId } });
+
+
     return res.status(200).json({ message: "Community deleted successfully" });
   } catch (error) {
     console.error(`Error deleting community: ${error.message}`);
@@ -153,11 +309,12 @@ console.log(posts)
 };
 
 const updatedCommunity = async (req, res) => {
-  const communityId = req.params.id;
+  const communityId = parseInt(req.params.id);
   const { name, bio } = req.body;
 
   try {
-    const community = await Community.findById(communityId);
+    // const community = await Community.findById(communityId);
+    const community = await prisma.community.findFirst({where: {id: communityId}});
 
     if (!community) {
       return res.status(404).json({ error: "Community not found" });
@@ -170,10 +327,16 @@ const updatedCommunity = async (req, res) => {
     //   });
     // }
 
-    community.name = name || community.name;
+
+
+ /*   community.name = name || community.name;
     community.bio = bio || community.bio;
 
-    await community.save();
+    await community.save();*/
+
+    await prisma.community.update({where: {id: communityId}, data: {
+      name, bio
+      }})
 
     return res
       .status(200)

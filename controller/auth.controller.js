@@ -17,7 +17,7 @@ const getUserDict = (token, user) => {
 
 const buildToken = (user) => {
   return {
-    userId: user._id,
+    userId: user.id,
     isAdmin: user.isAdmin,
   };
 };
@@ -92,7 +92,6 @@ const register = async (req, res) => {
       },
     });
 
-    console.log(user);
 
     const token = jwt.sign(buildToken(user), process.env.TOKEN_KEY || "secret");
 
@@ -124,7 +123,8 @@ const login = async (req, res) => {
       throw new Error("All input required");
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await prisma.user.findFirst({where: { email: email.toLowerCase() } });
 
     if (!user) {
       return res
@@ -139,6 +139,7 @@ const login = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Invalid email or password." });
     }
+    delete  user.password
 
     const token = jwt.sign(buildToken(user), process.env.TOKEN_KEY || "secret");
 
