@@ -1,0 +1,115 @@
+generator client {
+  output   = "./generated/client"
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://admin:123@localhost:3306/ceddit"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(30)
+  email     String   @unique
+  password  String   @db.VarChar(255)
+  image     String?
+  posts     Post[]
+  communities Community[]
+  isAdmin    Boolean  @default(false)
+  postVote PostVote[]
+  communitySubscriber CommunitySubscriber[]
+  commentVote CommentVote[]
+}
+
+model Post {
+  id      Int       @id @default(autoincrement())
+  title    String    @unique
+  content String
+  imageUrl String?
+  commentCount Int   @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User    @relation(fields: [userId], references: [id])
+  userId Int
+  community Community @relation(fields: [communityId], references: [id])
+  communityId Int
+  postVote PostVote[]
+}
+
+model PostVote {
+  id           Int      @id @default(autoincrement())
+  upvote       Boolean @default(false)
+  downvot  Boolean @default(false)
+  post         Post     @relation(fields: [postId], references: [id])
+  postId        Int
+  user         User     @relation(fields: [userId], references: [id])
+  userId        Int
+}
+
+
+model Community {
+  id        Int      @id @default(autoincrement())
+  admin    User      @relation(fields: [adminId], references: [id])
+  adminId Int
+  name      String   @unique @db.VarChar(30)
+  bio       String   @db.VarChar(255)
+  posts     Post[]
+  communitySubscriber CommunitySubscriber[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CommunitySubscriber {
+  id        Int      @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  community Community @relation(fields: [communityId], references: [id])
+  communityId Int
+}
+
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId Int
+  userId Int
+  content   String @db.Text()
+  parent CommentParentChildren[]
+  parentCommentId Int
+  commentVote CommentVote[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CommentVote {
+  id           Int      @id @default(autoincrement())
+  upvote       Boolean @default(false)
+  downvot  Boolean @default(false)
+  comment         Comment     @relation(fields: [commentId], references: [id])
+  commentId        Int
+  user         User     @relation(fields: [userId], references: [id])
+  userId        Int
+}
+
+model CommentParentChildren {
+  id           Int      @id @default(autoincrement())
+  commentId Int
+  parent    Comment? @relation(fields: [parentCommentId], references: [id], map: "comment_parent_fkey")
+  parentCommentId Int
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
