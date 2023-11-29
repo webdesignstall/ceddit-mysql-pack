@@ -6,14 +6,13 @@ WORKDIR /usr/src/app
 
 # Install Dependencies
 COPY package*.json ./
+COPY prisma ./prisma/
+COPY . .
 
 RUN npm install --silent
 
 # Install bcrypt
 RUN npm install bcrypt
-
-# Copy app source code
-COPY . .
 
 # Exports
 EXPOSE 4000
