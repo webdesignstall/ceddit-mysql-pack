@@ -141,6 +141,7 @@ exports.Prisma.CommunityScalarFieldEnum = {
   adminId: 'adminId',
   name: 'name',
   bio: 'bio',
+  subscriberCount: 'subscriberCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

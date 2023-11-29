@@ -57,6 +57,7 @@ model Community {
   bio       String   @db.VarChar(255)
   posts     Post[]
   communitySubscriber CommunitySubscriber[]
+  subscriberCount Int @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

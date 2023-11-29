@@ -4736,11 +4736,13 @@ export namespace Prisma {
   export type CommunityAvgAggregateOutputType = {
     id: number | null
     adminId: number | null
+    subscriberCount: number | null
   }
 
   export type CommunitySumAggregateOutputType = {
     id: number | null
     adminId: number | null
+    subscriberCount: number | null
   }
 
   export type CommunityMinAggregateOutputType = {
@@ -4748,6 +4750,7 @@ export namespace Prisma {
     adminId: number | null
     name: string | null
     bio: string | null
+    subscriberCount: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -4757,6 +4760,7 @@ export namespace Prisma {
     adminId: number | null
     name: string | null
     bio: string | null
+    subscriberCount: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -4766,6 +4770,7 @@ export namespace Prisma {
     adminId: number
     name: number
     bio: number
+    subscriberCount: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -4775,11 +4780,13 @@ export namespace Prisma {
   export type CommunityAvgAggregateInputType = {
     id?: true
     adminId?: true
+    subscriberCount?: true
   }
 
   export type CommunitySumAggregateInputType = {
     id?: true
     adminId?: true
+    subscriberCount?: true
   }
 
   export type CommunityMinAggregateInputType = {
@@ -4787,6 +4794,7 @@ export namespace Prisma {
     adminId?: true
     name?: true
     bio?: true
+    subscriberCount?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -4796,6 +4804,7 @@ export namespace Prisma {
     adminId?: true
     name?: true
     bio?: true
+    subscriberCount?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -4805,6 +4814,7 @@ export namespace Prisma {
     adminId?: true
     name?: true
     bio?: true
+    subscriberCount?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -4901,6 +4911,7 @@ export namespace Prisma {
     adminId: number
     name: string
     bio: string
+    subscriberCount: number
     createdAt: Date
     updatedAt: Date
     _count: CommunityCountAggregateOutputType | null
@@ -4929,6 +4940,7 @@ export namespace Prisma {
     adminId?: boolean
     name?: boolean
     bio?: boolean
+    subscriberCount?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     admin?: boolean | UserDefaultArgs<ExtArgs>
@@ -4942,6 +4954,7 @@ export namespace Prisma {
     adminId?: boolean
     name?: boolean
     bio?: boolean
+    subscriberCount?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -4966,6 +4979,7 @@ export namespace Prisma {
       adminId: number
       name: string
       bio: string
+      subscriberCount: number
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["community"]>
@@ -5371,6 +5385,7 @@ export namespace Prisma {
     readonly adminId: FieldRef<"Community", 'Int'>
     readonly name: FieldRef<"Community", 'String'>
     readonly bio: FieldRef<"Community", 'String'>
+    readonly subscriberCount: FieldRef<"Community", 'Int'>
     readonly createdAt: FieldRef<"Community", 'DateTime'>
     readonly updatedAt: FieldRef<"Community", 'DateTime'>
   }
@@ -9696,6 +9711,7 @@ export namespace Prisma {
     adminId: 'adminId',
     name: 'name',
     bio: 'bio',
+    subscriberCount: 'subscriberCount',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -10029,6 +10045,7 @@ export namespace Prisma {
     adminId?: IntFilter<"Community"> | number
     name?: StringFilter<"Community"> | string
     bio?: StringFilter<"Community"> | string
+    subscriberCount?: IntFilter<"Community"> | number
     createdAt?: DateTimeFilter<"Community"> | Date | string
     updatedAt?: DateTimeFilter<"Community"> | Date | string
     admin?: XOR<UserRelationFilter, UserWhereInput>
@@ -10041,6 +10058,7 @@ export namespace Prisma {
     adminId?: SortOrder
     name?: SortOrder
     bio?: SortOrder
+    subscriberCount?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     admin?: UserOrderByWithRelationInput
@@ -10056,6 +10074,7 @@ export namespace Prisma {
     NOT?: CommunityWhereInput | CommunityWhereInput[]
     adminId?: IntFilter<"Community"> | number
     bio?: StringFilter<"Community"> | string
+    subscriberCount?: IntFilter<"Community"> | number
     createdAt?: DateTimeFilter<"Community"> | Date | string
     updatedAt?: DateTimeFilter<"Community"> | Date | string
     admin?: XOR<UserRelationFilter, UserWhereInput>
@@ -10068,6 +10087,7 @@ export namespace Prisma {
     adminId?: SortOrder
     name?: SortOrder
     bio?: SortOrder
+    subscriberCount?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: CommunityCountOrderByAggregateInput
@@ -10085,6 +10105,7 @@ export namespace Prisma {
     adminId?: IntWithAggregatesFilter<"Community"> | number
     name?: StringWithAggregatesFilter<"Community"> | string
     bio?: StringWithAggregatesFilter<"Community"> | string
+    subscriberCount?: IntWithAggregatesFilter<"Community"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Community"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Community"> | Date | string
   }
@@ -10533,6 +10554,7 @@ export namespace Prisma {
   export type CommunityCreateInput = {
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     admin: UserCreateNestedOneWithoutCommunitiesInput
@@ -10545,6 +10567,7 @@ export namespace Prisma {
     adminId: number
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     posts?: PostUncheckedCreateNestedManyWithoutCommunityInput
@@ -10554,6 +10577,7 @@ export namespace Prisma {
   export type CommunityUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     admin?: UserUpdateOneRequiredWithoutCommunitiesNestedInput
@@ -10566,6 +10590,7 @@ export namespace Prisma {
     adminId?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     posts?: PostUncheckedUpdateManyWithoutCommunityNestedInput
@@ -10577,6 +10602,7 @@ export namespace Prisma {
     adminId: number
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10584,6 +10610,7 @@ export namespace Prisma {
   export type CommunityUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -10593,6 +10620,7 @@ export namespace Prisma {
     adminId?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -11122,6 +11150,7 @@ export namespace Prisma {
     adminId?: SortOrder
     name?: SortOrder
     bio?: SortOrder
+    subscriberCount?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -11129,6 +11158,7 @@ export namespace Prisma {
   export type CommunityAvgOrderByAggregateInput = {
     id?: SortOrder
     adminId?: SortOrder
+    subscriberCount?: SortOrder
   }
 
   export type CommunityMaxOrderByAggregateInput = {
@@ -11136,6 +11166,7 @@ export namespace Prisma {
     adminId?: SortOrder
     name?: SortOrder
     bio?: SortOrder
+    subscriberCount?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -11145,6 +11176,7 @@ export namespace Prisma {
     adminId?: SortOrder
     name?: SortOrder
     bio?: SortOrder
+    subscriberCount?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -11152,6 +11184,7 @@ export namespace Prisma {
   export type CommunitySumOrderByAggregateInput = {
     id?: SortOrder
     adminId?: SortOrder
+    subscriberCount?: SortOrder
   }
 
   export type CommunitySubscriberCountOrderByAggregateInput = {
@@ -12085,6 +12118,7 @@ export namespace Prisma {
   export type CommunityCreateWithoutAdminInput = {
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     posts?: PostCreateNestedManyWithoutCommunityInput
@@ -12095,6 +12129,7 @@ export namespace Prisma {
     id?: number
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     posts?: PostUncheckedCreateNestedManyWithoutCommunityInput
@@ -12231,6 +12266,7 @@ export namespace Prisma {
     adminId?: IntFilter<"Community"> | number
     name?: StringFilter<"Community"> | string
     bio?: StringFilter<"Community"> | string
+    subscriberCount?: IntFilter<"Community"> | number
     createdAt?: DateTimeFilter<"Community"> | Date | string
     updatedAt?: DateTimeFilter<"Community"> | Date | string
   }
@@ -12347,6 +12383,7 @@ export namespace Prisma {
   export type CommunityCreateWithoutPostsInput = {
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     admin: UserCreateNestedOneWithoutCommunitiesInput
@@ -12358,6 +12395,7 @@ export namespace Prisma {
     adminId: number
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     communitySubscriber?: CommunitySubscriberUncheckedCreateNestedManyWithoutCommunityInput
@@ -12441,6 +12479,7 @@ export namespace Prisma {
   export type CommunityUpdateWithoutPostsInput = {
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     admin?: UserUpdateOneRequiredWithoutCommunitiesNestedInput
@@ -12452,6 +12491,7 @@ export namespace Prisma {
     adminId?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     communitySubscriber?: CommunitySubscriberUncheckedUpdateManyWithoutCommunityNestedInput
@@ -12784,6 +12824,7 @@ export namespace Prisma {
   export type CommunityCreateWithoutCommunitySubscriberInput = {
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     admin: UserCreateNestedOneWithoutCommunitiesInput
@@ -12795,6 +12836,7 @@ export namespace Prisma {
     adminId: number
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     posts?: PostUncheckedCreateNestedManyWithoutCommunityInput
@@ -12855,6 +12897,7 @@ export namespace Prisma {
   export type CommunityUpdateWithoutCommunitySubscriberInput = {
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     admin?: UserUpdateOneRequiredWithoutCommunitiesNestedInput
@@ -12866,6 +12909,7 @@ export namespace Prisma {
     adminId?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     posts?: PostUncheckedUpdateManyWithoutCommunityNestedInput
@@ -13151,6 +13195,7 @@ export namespace Prisma {
     id?: number
     name: string
     bio: string
+    subscriberCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -13211,6 +13256,7 @@ export namespace Prisma {
   export type CommunityUpdateWithoutAdminInput = {
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     posts?: PostUpdateManyWithoutCommunityNestedInput
@@ -13221,6 +13267,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     posts?: PostUncheckedUpdateManyWithoutCommunityNestedInput
@@ -13231,6 +13278,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     bio?: StringFieldUpdateOperationsInput | string
+    subscriberCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
