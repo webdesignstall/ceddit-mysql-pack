@@ -56,22 +56,6 @@ const getCommunityPosts = async (req, res) => {
   const communityId = parseInt(req.params.id);
 
   try {
-    /*const community = await Community.findById(communityId)
-      .populate({
-        path: "posts",
-        populate: {
-          path: "user",
-          model: "user",
-        },
-      })
-      .populate({
-        path: "posts",
-        populate: {
-          path: "community",
-          model: "community",
-        },
-      });*/
-
 
     const community = await prisma.community.findUnique({
       where: { id: communityId },
@@ -278,28 +262,46 @@ const deleteCommunity = async (req, res) => {
   const communityId = parseInt(req.params.id);
 
   try {
-    // const community = await Community.findById(communityId);
-    const community = await prisma.community.findFirst({ where: {id: communityId}});
-    const posts =await Post.find({ community:communityId})
+    // Fetch post IDs associated with the community
+    const postIds = await prisma.post.findMany({
+      where: { communityId: communityId },
+      select: { id: true },
+    });
 
-    if (!community) {
-      return res.status(404).json({ error: "Community not found" });
-    }
-
-    const userId = req.user.userId;
-    const isAdmin = req.user.isAdmin;
-    // if (community.admin.toString() !== userId && !isAdmin) {
-    //   return res.status(403).json({
-    //     error: "Permission denied - You are not the admin of this community",
-    //   });
-    // }
-
-   /* await Community.deleteOne({ _id: communityId });
-    await Post.deleteMany({ community: communityId });*/
-
-    await prisma.post.deleteMany({ where: { communityId: communityId } });
-    await prisma.community.delete({ where: { id: communityId } });
-
+    await prisma.$transaction([
+      prisma.commentVote.deleteMany({
+        where: {
+          comment: {
+            postId: {
+              in: postIds.map(post => post.id),
+            },
+          },
+        },
+      }),
+      prisma.comment.deleteMany({
+        where: {
+          postId: {
+            in: postIds.map(post => post.id),
+          },
+        },
+      }),
+      prisma.postVote.deleteMany({
+        where: {
+          postId: {
+            in: postIds.map(post => post.id),
+          },
+        },
+      }),
+      prisma.post.deleteMany({
+        where: { communityId: communityId },
+      }),
+      prisma.communitySubscriber.deleteMany({
+        where: { communityId: communityId },
+      }),
+      prisma.community.delete({
+        where: { id: communityId },
+      }),
+    ]);
 
     return res.status(200).json({ message: "Community deleted successfully" });
   } catch (error) {
@@ -307,6 +309,7 @@ const deleteCommunity = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const updatedCommunity = async (req, res) => {
   const communityId = parseInt(req.params.id);
