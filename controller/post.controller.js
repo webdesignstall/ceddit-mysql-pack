@@ -49,9 +49,9 @@ const createPost = async (req, res) => {
 
     const community = await prisma.community.findUnique({where: {id: parseInt(communityId)}});
 
-    if (!community) {
+    /*if (!community) {
       return res.status(404).json({ message: "community not found" });
-    }
+    }*/
 
     const post = await prisma.post.create({
       data: {
