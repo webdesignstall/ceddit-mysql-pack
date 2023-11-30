@@ -1,63 +1,41 @@
 const Comment = require("../model/comment.model");
 const Post = require("../model/post.model");
-const {PrismaClient} = require('../prisma/generated/client');
-const prisma = new PrismaClient();
 
 const createComment = async (req, res) => {
   try {
-
     const { content, parentId } = req.body;
-    const postId = parseInt(req.params.postId);
+    const postId = req.params.postId;
     const userId = req.user.userId;
 
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-    });
+    const post = await Post.findById(postId);
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: "Post not found" });
     }
-
-    const comment = await prisma.comment.create({
-      data: {
-        content: content,
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-        post: {
-          connect: {
-            id: parseInt(postId),
-          },
-        },
-        parent: parentId ? {
-          connect: {
-            id: parseInt(parentId),
-          },
-        } : undefined,
-      },
+    if (!post.comments) {
+      post.comments = [];
+    }
+    const comment = await Comment.create({
+      content,
+      parent: parentId,
+      post: postId,
+      commentedBy: userId,
     });
 
-    await prisma.post.update({
-      where: {
-        id: parseInt(postId),
-      },
-      data: {
-        commentCount: {
-          increment: 1,
-        },
-      },
+    await comment.save();
+    post.commentCount += 1;
+    await post.save();
+
+    await Comment.populate(comment, {
+      path: "commentedBy",
+      select: "-password",
     });
-
-
-
-    res.status(200).json({ message: 'Comment added successfully', comment });
+    res
+      .status(200)
+      .json({ message: "Comment added successfully", comment: comment });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal Server Error', error });
-  } finally {
-    await prisma.$disconnect();
+    res.status(500).json({ message: "Internal Server Error", error });
   }
 };
 
@@ -69,120 +47,69 @@ const getPostComments = async (req, res) => {
       return res.status(400).json({ message: "Post ID is required" });
     }
 
-    // Fetch comments from Prisma based on postId
-    const comments = await prisma.comment.findMany({
-      where: { postId: parseInt(postId) },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            // Add other user fields as needed, excluding password
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const comments = await Comment.find({ post: postId })
+      .populate("commentedBy", "-password")
+      .sort("-createdAt");
 
-    /*let commentParents = {};
+    let commentParents = {};
     let rootComments = [];
 
-    // Organize comments into a tree structure
     for (let i = 0; i < comments.length; i++) {
       let comment = comments[i];
-      commentParents[comment.id] = comment;
+      commentParents[comment._id] = comment;
     }
 
     for (let i = 0; i < comments.length; i++) {
       const comment = comments[i];
-      if (comment.parentId) {
-        let commentParent = commentParents[comment.parentId];
+      if (comment.parent) {
+        let commentParent = commentParents[comment.parent];
         if (!commentParent) {
-          commentParent = { id: comment.parentId, children: [] };
-          commentParents[comment.parentId] = commentParent;
+          commentParent = { _id: comment.parent, children: [] };
+          commentParents[comment.parent] = commentParent;
         }
         commentParent.children = [...commentParent.children, comment];
       } else {
         rootComments = [...rootComments, comment];
       }
-    }*/
+    }
 
-    const formattedComments = formatComments(comments);
-
-    return res.status(200).json(formattedComments);
+    return res.status(200).json(comments);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Something Went Wrong!", error: err.message });
-  } finally {
-    await prisma.$disconnect(); // Close the Prisma client connection
+    return res
+      .status(500)
+      .json({ message: "Something Went Wrong!", error: err.message });
   }
-};
-
-
-const formatComments = (comments) => {
-  const commentMap = {};
-  const result = [];
-
-  // Create a mapping of comment IDs to their formatted representation
-  comments.forEach((comment) => {
-    const formattedComment = {
-      _id: String(comment.id),
-      commentedBy: {
-        _id: String(comment.user.id),
-        username: comment.user.username,
-        email: comment.user.email,
-        // Add other user fields as needed
-      },
-      post: String(comment.postId),
-      content: comment.content,
-      parent: comment.parentId ? String(comment.parentId) : null,
-      children: [],
-      upvotedBy: [], // Add upvotedBy and downvotedBy arrays if needed
-      downvotedBy: [],
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
-    };
-
-    commentMap[comment.id] = formattedComment;
-
-    if (!comment.parentId) {
-      result.push(formattedComment);
-    }
-  });
-
-  // Connect child comments to their parent in the formatted result
-  comments.forEach((comment) => {
-    if (comment.parentId) {
-      commentMap[comment.parentId].children.push(commentMap[comment.id]);
-    }
-  });
-
-  return result;
 };
 
 const addReply = async (req, res) => {
   try {
     const { content } = req.body;
-    const userId = req.user.userId;
+    const commentedBy = req.user.userId;
     const postId = req.params.postId;
     const commentId = req.params.id;
 
-    const comment = await prisma.comment.create({
-      data: {
-        content: content,
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-        post: {
-          connect: {
-            id: postId,
-          },
-        },
-        parentId: commentId
-      },
+    const comment = new Comment({
+      commentedBy: commentedBy,
+      content: content,
+      parents: commentId,
     });
+
+    await comment.save();
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (!post.comments) {
+      post.comments = [];
+    }
+
+    post.comments.push(comment);
+    post.commentCount += 1;
+
+    await post.save();
 
     res
       .status(201)
