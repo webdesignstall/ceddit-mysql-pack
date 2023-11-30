@@ -364,7 +364,7 @@ const deleteCommentForPost = async (req, res) => {
   }
 };
 
-const upvoteComment = async (req, res) => {
+const voteComment = async (req, res) => {
   const commentId = parseInt(req.params.commentId);
   const vote = req.query.vote;
   const userId = req.user.userId;
@@ -377,30 +377,6 @@ const upvoteComment = async (req, res) => {
     if (!comment) {
       return res.status(404).json({ error: 'Comment not found' });
     }
-
-   /* const hasUpvoted = await prisma.commentVote.findFirst({
-      where: { commentId, userId, isUpvote: true },
-    });
-
-    const hasDownvoted = await prisma.commentVote.findFirst({
-      where: { commentId, userId, isUpvote: false },
-    });
-
-    if (vote === 'downvote' && hasDownvoted) {
-      await prisma.commentVote.deleteMany({
-        where: { commentId, userId, isUpvote: false },
-      });
-    }
-
-    if (vote === 'upvote' && hasUpvoted) {
-      await prisma.commentVote.deleteMany({
-        where: { commentId, userId, isUpvote: true },
-      });
-
-      return res.status(200).json({
-        message: 'Successfully removed upvote from the comment',
-      });
-    }*/
 
     if (vote === 'upvote'){
       await prisma.commentVote.create({
@@ -430,7 +406,7 @@ const upvoteComment = async (req, res) => {
 };
 
 
-const downvoteComment = async (req, res) => {
+/*const downvoteComment = async (req, res) => {
   const commentId = parseInt(req.params.commentId);
   const userId = req.user.userId;
 
@@ -482,7 +458,7 @@ const downvoteComment = async (req, res) => {
   } finally {
     await prisma.$disconnect();
   }
-};
+};*/
 
 module.exports = {
   createComment,
@@ -490,6 +466,5 @@ module.exports = {
   addReply,
   updateCommentForPost,
   deleteCommentForPost,
-  upvoteComment,
-  downvoteComment,
+  voteComment,
 };
