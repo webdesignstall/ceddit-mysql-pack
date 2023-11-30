@@ -154,26 +154,11 @@ exports.Prisma.CommunitySubscriberScalarFieldEnum = {
 
 exports.Prisma.CommentScalarFieldEnum = {
   id: 'id',
-  postId: 'postId',
-  userId: 'userId',
   content: 'content',
-  parentCommentId: 'parentCommentId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.CommentVoteScalarFieldEnum = {
-  id: 'id',
-  upvote: 'upvote',
-  downvot: 'downvot',
-  commentId: 'commentId',
+  parentId: 'parentId',
+  postId: 'postId',
   userId: 'userId'
-};
-
-exports.Prisma.CommentParentChildrenScalarFieldEnum = {
-  id: 'id',
-  commentId: 'commentId',
-  parentCommentId: 'parentCommentId'
 };
 
 exports.Prisma.SortOrder = {
@@ -193,9 +178,7 @@ exports.Prisma.ModelName = {
   PostVote: 'PostVote',
   Community: 'Community',
   CommunitySubscriber: 'CommunitySubscriber',
-  Comment: 'Comment',
-  CommentVote: 'CommentVote',
-  CommentParentChildren: 'CommentParentChildren'
+  Comment: 'Comment'
 };
 
 /**

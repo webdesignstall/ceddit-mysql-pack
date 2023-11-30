@@ -45,6 +45,8 @@ const createPost = async (req, res) => {
       throw new Error("All input required");
     }
 
+
+
     const community = await prisma.community.findUnique({where: {id: parseInt(communityId)}});
 
     if (!community) {
