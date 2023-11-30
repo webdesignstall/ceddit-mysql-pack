@@ -58,6 +58,22 @@ const buildToken = (user) => {
 };*/
 
 
+const userDataFiltered = (user, token)=> {
+  return {
+    token: token,
+    username: user.username,
+    userId: user.id,
+    isAdmin: user.isAdmin,
+    user: {
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      _id: user.id,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
+  }
+}
 
 const register = async (req, res) => {
   try {
@@ -94,27 +110,16 @@ const register = async (req, res) => {
 
     const token = jwt.sign(buildToken(user), process.env.TOKEN_KEY || "secret");
 
-    const response = {
-      token: token,
-      username: user.username,
-      userId: user.id,
-      isAdmin: user.isAdmin,
-      user: {
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        _id: user.id,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      }
-    }
+    const filteredUserData = userDataFiltered(user, token)
 
-    return res.status(200).json(getUserDict(token, response));
+    return res.status(200).json(getUserDict(token, filteredUserData));
   } catch (error) {
     console.error("Error during registration:", error);
     return res.status(400).json({ error: error.message });
   }
 };
+
+
 
 // Your Prisma model definition here
 // ...
@@ -153,11 +158,13 @@ const login = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Invalid email or password." });
     }
-    delete  user.password
+    delete user.password
 
     const token = jwt.sign(buildToken(user), process.env.TOKEN_KEY || "secret");
 
-    return res.json(getUserDict(token, user));
+    const filteredUserData = userDataFiltered(user, token)
+
+    return res.json(getUserDict(token, filteredUserData));
   } catch (error) {
     console.log(error);
     return res.status(400).json({ error: error.message });
