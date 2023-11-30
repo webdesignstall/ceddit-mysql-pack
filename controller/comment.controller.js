@@ -61,7 +61,7 @@ const createComment = async (req, res) => {
   }
 };
 
-const getPostComments = async (req, res) => {
+/*const getPostComments = async (req, res) => {
   try {
     const postId = req.params.id;
 
@@ -80,32 +80,10 @@ const getPostComments = async (req, res) => {
             // Add other user fields as needed, excluding password
           },
         },
+        CommentVote: true
       },
       orderBy: { createdAt: 'desc' },
     });
-
-    /*let commentParents = {};
-    let rootComments = [];
-
-    // Organize comments into a tree structure
-    for (let i = 0; i < comments.length; i++) {
-      let comment = comments[i];
-      commentParents[comment.id] = comment;
-    }
-
-    for (let i = 0; i < comments.length; i++) {
-      const comment = comments[i];
-      if (comment.parentId) {
-        let commentParent = commentParents[comment.parentId];
-        if (!commentParent) {
-          commentParent = { id: comment.parentId, children: [] };
-          commentParents[comment.parentId] = commentParent;
-        }
-        commentParent.children = [...commentParent.children, comment];
-      } else {
-        rootComments = [...rootComments, comment];
-      }
-    }*/
 
     const formattedComments = formatComments(comments);
 
@@ -116,10 +94,8 @@ const getPostComments = async (req, res) => {
   } finally {
     await prisma.$disconnect(); // Close the Prisma client connection
   }
-};
-
-
-const formatComments = (comments) => {
+};*/
+/*const formatComments = (comments) => {
   const commentMap = {};
   const result = [];
 
@@ -158,7 +134,103 @@ const formatComments = (comments) => {
   });
 
   return result;
+};*/
+
+
+const formatComments = (comments, commentVotes) => {
+  const commentMap = {};
+  const result = [];
+
+  comments.forEach((comment) => {
+    const formattedComment = {
+      _id: String(comment.id),
+      commentedBy: {
+        _id: String(comment.user.id),
+        username: comment.user.username,
+        email: comment.user.email,
+        isAdmin: comment.user.isAdmin,
+        createdAt: comment.user.createdAt,
+        updatedAt: comment.user.updatedAt,
+      },
+      post: String(comment.postId),
+      content: comment.content,
+      parent: comment.parentId ? String(comment.parentId) : null,
+      children: [],
+      upvotedBy: [],
+      downvotedBy: [],
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+    };
+
+    commentMap[comment.id] = formattedComment;
+
+    if (!comment.parentId) {
+      result.push(formattedComment);
+    }
+  });
+
+  commentVotes.forEach((vote) => {
+    const comment = commentMap[vote.commentId];
+    if (comment) {
+      if (vote.isUpvote) {
+        comment.upvotedBy.push(String(vote.userId));
+      } else {
+        comment.downvotedBy.push(String(vote.userId));
+      }
+    }
+  });
+
+  comments.forEach((comment) => {
+    if (comment.parentId) {
+      const parent = commentMap[comment.parentId];
+      if (parent) {
+        parent.children.push(commentMap[comment.id]);
+      }
+    }
+  });
+
+  return result;
 };
+
+const getPostComments = async (req, res) => {
+  try {
+    const postId = req.params.id;
+
+    if (!postId) {
+      return res.status(400).json({ message: "Post ID is required" });
+    }
+
+    // Fetch comments and comment votes from Prisma based on postId
+    const comments = await prisma.comment.findMany({
+      where: { postId: parseInt(postId) },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            isAdmin: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const commentVotes = await prisma.commentVote.findMany({
+      where: { commentId: { in: comments.map((comment) => comment.id) } },
+    });
+
+    const formattedComments = formatComments(comments, commentVotes);
+
+    return res.status(200).json(formattedComments);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Something Went Wrong!", error: err.message });
+  } finally {
+    await prisma.$disconnect(); // Close the Prisma client connection
+  }
+};
+
 
 const addReply = async (req, res) => {
   try {
@@ -276,12 +348,6 @@ const deleteCommentForPost = async (req, res) => {
       return res.status(401).json({ message: "Access is denied." });
     }
 
-    /*await prisma.comment.delete(
-        {
-          where: {id: commentId}
-        }
-    )*/
-
     await prisma.post.update(
         {
           where: {id: postId},
@@ -299,84 +365,122 @@ const deleteCommentForPost = async (req, res) => {
 };
 
 const upvoteComment = async (req, res) => {
-  const commentId = req.params.commentId;
+  const commentId = parseInt(req.params.commentId);
+  const vote = req.query.vote;
   const userId = req.user.userId;
 
   try {
-    const comment = await Comment.findById(commentId);
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+    });
 
     if (!comment) {
-      return res.status(404).json({ error: "Post not found" });
+      return res.status(404).json({ error: 'Comment not found' });
     }
 
-    const hasUpvoted = comment.upvotedBy.includes(userId);
-    const hasDownvoted = comment.downvotedBy.includes(userId);
+   /* const hasUpvoted = await prisma.commentVote.findFirst({
+      where: { commentId, userId, isUpvote: true },
+    });
 
-    if (hasDownvoted) {
-      comment.downvotedBy = comment.downvotedBy.filter(
-        (id) => id.toString() !== userId
-      );
+    const hasDownvoted = await prisma.commentVote.findFirst({
+      where: { commentId, userId, isUpvote: false },
+    });
+
+    if (vote === 'downvote' && hasDownvoted) {
+      await prisma.commentVote.deleteMany({
+        where: { commentId, userId, isUpvote: false },
+      });
     }
 
-    if (hasUpvoted) {
-      comment.upvotedBy = comment.upvotedBy.filter(
-        (id) => id.toString() !== userId
-      );
-      await comment.save();
-      return res
-        .status(200)
-        .json({ message: "Successfully removed upvote from the comment" });
+    if (vote === 'upvote' && hasUpvoted) {
+      await prisma.commentVote.deleteMany({
+        where: { commentId, userId, isUpvote: true },
+      });
+
+      return res.status(200).json({
+        message: 'Successfully removed upvote from the comment',
+      });
+    }*/
+
+    if (vote === 'upvote'){
+      await prisma.commentVote.create({
+        data: { commentId, userId, isUpvote: true },
+      });
+      return res.status(200).json({
+        message: 'Successfully upvoted the comment',
+      });
+    }else if (vote === 'downvote'){
+      await prisma.commentVote.deleteMany({
+        where: { commentId, userId, isUpvote: true },
+      });
+      return res.status(200).json({
+        message: 'Successfully removed upvote from the comment',
+      });
     }
 
-    comment.upvotedBy.push(userId);
-    await comment.save();
 
-    return res
-      .status(200)
-      .json({ message: "Successfully upvoted the comment" });
+
+
   } catch (error) {
     console.error(`Error upvoting comment: ${error.message}`);
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
 
 const downvoteComment = async (req, res) => {
-  const commentId = req.params.commentId;
+  const commentId = parseInt(req.params.commentId);
   const userId = req.user.userId;
 
   try {
-    const comment = await Comment.findById(commentId);
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+    });
 
     if (!comment) {
-      return res.status(404).json({ error: "comment not found" });
+      return res.status(404).json({ error: 'Comment not found' });
     }
 
-    const hasUpvoted = comment.upvotedBy.includes(userId);
-    const hasDownvoted = comment.downvotedBy.includes(userId);
+    const hasUpvoted = await prisma.commentVote.findFirst({
+      where: { commentId, userId, isUpvote: true },
+    });
 
-    if (hasUpvoted) {
-      comment.upvotedBy = comment.upvotedBy.filter(
-        (id) => id.toString() !== userId
-      );
-    }
+    const hasDownvoted = await prisma.commentVote.findFirst({
+      where: { commentId, userId, isUpvote: false },
+    });
+
+    console.log(hasDownvoted)
 
     if (hasDownvoted) {
-      comment.downvotedBy = comment.downvotedBy.filter(
-        (id) => id.toString() !== userId
-      );
-    } else {
-      comment.downvotedBy.push(userId);
+      await prisma.commentVote.deleteMany({
+        where: { commentId, userId, isUpvote: false },
+      });
     }
 
-    await comment.save();
+    if (hasUpvoted) {
+      await prisma.commentVote.deleteMany({
+        where: { commentId, userId, isUpvote: true },
+      });
 
-    return res
-      .status(200)
-      .json({ message: "Successfully downvoted the comment" });
+      return res.status(200).json({
+        message: 'Successfully removed down vote from the comment',
+      });
+    }
+
+    await prisma.commentVote.create({
+      data: { commentId, userId, isUpvote: false },
+    });
+
+    return res.status(200).json({
+      message: 'Successfully down voted the comment',
+    });
   } catch (error) {
-    console.error(`Error downvoting comment: ${error.message}`);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error(`Error down voting comment: ${error.message}`);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 

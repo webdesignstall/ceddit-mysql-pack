@@ -71,13 +71,13 @@ const getPostComments = async (postId) => {
   }
 };
 
-const upvoteComment = async (commentId) => {
+const voteComment = async (commentId, vote) => {
   try {
     const user = isLoggedIn();
     if (!user) {
       return new Error("User not logged in");
     }
-    const res = await fetch(BASE_URL + `api/comment/${commentId}/upvote`, {
+    const res = await fetch(BASE_URL + `api/comment/${commentId}/upvote?vote=${vote}`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -85,6 +85,7 @@ const upvoteComment = async (commentId) => {
         "x-access-token": user.token,
       },
     });
+    window.location.reload()
     return await res.json();
   } catch (err) {
     console.log(err);
@@ -116,6 +117,6 @@ export {
   createComment,
   updateComment,
   deleteComment,
-  upvoteComment,
+  voteComment,
   downvoteComment,
 };

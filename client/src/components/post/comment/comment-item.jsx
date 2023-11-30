@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
   Avatar,
   Box,
@@ -24,7 +24,7 @@ import CommentInput from "./comment-input";
 import {
   createComment,
   downvoteComment,
-  upvoteComment,
+  voteComment,
 } from "../../../api/comment";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -65,8 +65,6 @@ const CommentItem = ({
     }
   };
 
-
-
   return (
     <Flex
       border={reply && 2}
@@ -104,7 +102,7 @@ const CommentItem = ({
             as={isUserUpvote() ? IoArrowUpCircleSharp : IoArrowUpCircleOutline}
             color={isUserUpvote() ? "brand.100" : "gray.400"}
             cursor="pointer"
-            onClick={() => upvoteComment(comment._id)}
+            onClick={() => voteComment(comment._id, 'upvote')}
           />
           <Text fontSize="9pt" fontWeight={600}>
             {comment?.upvotedBy?.length - comment?.downvotedBy?.length}
@@ -118,7 +116,7 @@ const CommentItem = ({
             color={isUserDownvote() ? "#4379FF" : "gray.400"}
             fontSize={22}
             cursor="pointer"
-            onClick={() => downvoteComment(comment._id)}
+            onClick={() => voteComment(comment._id, 'downvote')}
           />
           <Flex
             as={"button"}
