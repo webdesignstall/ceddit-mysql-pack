@@ -17,14 +17,14 @@ const Comments = ({ user, post }) => {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
   const navigate = useNavigate();
-
+  // console.log('post', post)
   useEffect(() => {
     if (post?._id) {
       getPostComments(post?._id).then((data) => {
         setComments(data);
       });
     }
-  }, []);
+  }, [post?._id]);
 
   const onCreateComment = async () => {
     const data = await createComment(post?._id, {
