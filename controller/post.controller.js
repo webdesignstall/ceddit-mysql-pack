@@ -45,14 +45,6 @@ const createPost = async (req, res) => {
       throw new Error("All input required");
     }
 
-
-
-    const community = await prisma.community.findUnique({where: {id: parseInt(communityId)}});
-
-    /*if (!community) {
-      return res.status(404).json({ message: "community not found" });
-    }*/
-
     const post = await prisma.post.create({
       data: {
         title,
@@ -60,16 +52,16 @@ const createPost = async (req, res) => {
         imageUrl,
         userId: userId,
         communityId: parseInt(communityId),
-        postVote: {
-          create: {
-            upvote: true,  // or false, depending on your logic
-            user: {
-              connect: {
-                id: userId  // Assuming userId is the ID of the user creating the post
-              }
-            }
-          }
-        }
+        // postVote: {
+        //   create: {
+        //     isUpvote: true,  // or false, depending on your logic
+        //     user: {
+        //       connect: {
+        //         id: userId  // Assuming userId is the ID of the user creating the post
+        //       }
+        //     }
+        //   }
+        // }
       }
     });
 
@@ -81,20 +73,68 @@ const createPost = async (req, res) => {
   }
 };
 
-/*const getPosts = async (req, res) => {
-  try {
-    const posts = await Post.find()
-      .sort({ createdAt: -1 })
-      .populate("user")
-      .populate("community");
+const filterPosts = async (data, postVotes) => {
+  const formattedPosts = await Promise.all(
+      data.map(async (post) => {
+        const upvotedBy = await postVotes(post.id);
+        return {
+          _id: post.id,
+          title: post.title,
+          content: post.content,
+          imageUrl: post.imageUrl,
+          commentCount: post.commentCount,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+          user: {
+            _id: post.user.id,
+            username: post.user.username,
+            email: post.user.email,
+            isAdmin: post.user.isAdmin,
+          },
+          community: {
+            _id: post.community.id,
+            admin: post.community.adminId,
+            name: post.community.name,
+            bio: post.community.bio,
+          },
+          upvotedBy,
+          downvotedBy: [], // You can handle downvotes similarly
+        };
+      })
+  );
 
-    res.json(posts);
+  return formattedPosts;
+};
+
+const postVotes = async (postId) => {
+  const votes = await prisma.postVote.findMany({
+    where: {
+      postId: postId,
+      isUpvote: true,
+    },
+  });
+  return votes.map((vote) => vote.userId);
+};
+
+const getPosts = async (req, res) => {
+  try {
+    const posts = await prisma.post.findMany({
+      include: {
+        user: true,
+        community: true,
+      },
+    });
+
+    const filteredPosts = await filterPosts(posts, postVotes);
+
+    res.status(200).json(filteredPosts);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-};*/
+};
 
+/*
 const getPosts = async (req, res) => {
   try {
 
@@ -106,7 +146,15 @@ const getPosts = async (req, res) => {
       }
     })
 
-    const filteredPosts = filterPosts(posts);
+    const postVotes = await prisma.postVote.findMany({
+      where: {
+        postId: { in: posts.map((post) => post.id) },
+        userId: { in: posts.map((post) => post.user.id) },
+        isUpvote: true
+      },
+    });
+
+    const filteredPosts = filterPosts(posts, postVotes);
 
     res.status(200).json(filteredPosts);
   } catch (error) {
@@ -114,27 +162,8 @@ const getPosts = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+*/
 
-/*const getPostById = async (req, res) => {
-  const postId = req.params.id;
-
-  try {
-    const post = await Post.findById(postId)
-      .populate("user")
-      .populate("community");
-
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    res.json(post);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
-  }
-};*/
 
 const getPostById = async (req, res) => {
   const postId = parseInt(req.params.id);
@@ -154,6 +183,10 @@ const getPostById = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
+
+    const postVotes = await prisma.postVote.findMany({
+      where: { postId:  post.id },
+    });
 
     const filterPost = {
         _id: post.id,
@@ -175,6 +208,7 @@ const getPostById = async (req, res) => {
           name: post.community.name,
           bio: post.community.bio
         },
+        upvotedBy: postVotes
       }
 
 
@@ -188,82 +222,45 @@ const getPostById = async (req, res) => {
   }
 };
 
-/*const deletePost = async (req, res) => {
-  const postId = req.params.id;
-
-  try {
-    const post = await Post.findById(postId);
-
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    await Post.deleteOne({ _id: postId });
-
-    return res.status(200).json({ message: "Post deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
-  }
-};*/
 
 const deletePost = async (req, res) => {
   const postId = parseInt(req.params.id);
 
   try {
-    const post = await prisma.post.findUnique({where: {id: postId}});
-
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-    await prisma.postVote.deleteMany({
-      where: {
-        postId: postId,
-      },
-    });
-    await prisma.post.delete({where: {id: postId}});
+    await prisma.$transaction([
+      prisma.commentVote.deleteMany({
+        where: {
+          comment: {
+            postId: postId,
+          },
+        },
+      }),
+      prisma.comment.deleteMany({
+        where: {
+          postId: postId,
+        },
+      }),
+      prisma.postVote.deleteMany({
+        where: {
+          postId: postId,
+        },
+      }),
+      prisma.post.delete({
+        where: { id: postId },
+      }),
+    ]);
 
     return res.status(200).json({ message: "Post deleted successfully" });
   } catch (error) {
     console.error(error);
-    res
-        .status(500)
-        .json({ message: "Internal Server Error", error: error.message });
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: "An error occurred while deleting the post.",
+    });
   }
 };
 
 
-/*const updatePost = async (req, res) => {
-  const postId = req.params.id;
-
-  try {
-    const post = await Post.findById(postId);
-
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    if (post) {
-      post.title = req.body.title || post.title;
-      post.content = req.body.content || post.content;
-
-      await post.save();
-
-      return res
-        .status(200)
-        .json({ message: "Post updated successfully", post });
-    } else {
-      return res.status(403).json({ message: "Permission denied" });
-    }
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
-  }
-};*/
 
 const updatePost = async (req, res) => {
   const postId = parseInt(req.params.id);
@@ -297,26 +294,6 @@ const updatePost = async (req, res) => {
   }
 };
 
-/*const searchPosts = async (req, res) => {
-  const query = req.query.posts;
-  try {
-    const posts = await Post.find({
-      $or: [
-        { title: { $regex: new RegExp(query, "i") } },
-        { content: { $regex: new RegExp(query, "i") } },
-      ],
-    })
-      .populate("user")
-      .populate("community");
-    res.json(posts);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
-  }
-};*/
-
 
 const searchPosts = async (req, res) => {
   const query = req.query.posts;
@@ -345,43 +322,56 @@ const searchPosts = async (req, res) => {
   }
 };
 
-const upvotePost = async (req, res) => {
-  const postId = req.params.postId;
+
+
+
+const votePost = async (req, res) => {
+  const postId = parseInt(req.params.postId);
+  const vote = req.query.vote;
   const userId = req.user.userId;
 
   try {
-    const post = await Post.findById(postId);
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
 
     if (!post) {
-      return res.status(404).json({ error: "Post not found" });
+      return res.status(404).json({ error: 'post not found' });
     }
 
-    const hasUpvoted = post.upvotedBy.includes(userId);
-    const hasDownvoted = post.downvotedBy.includes(userId);
+    if (vote === 'upvote'){
 
-    if (hasDownvoted) {
-      post.downvotedBy = post.downvotedBy.filter(
-        (id) => id.toString() !== userId
-      );
+      const isVoted = await prisma.postVote.findFirst(
+          {
+            where: { postId, userId }
+          }
+      )
+
+      if (!isVoted){
+        await prisma.postVote.create({
+          data: { postId, userId, isUpvote: true },
+        });
+        return res.status(200).json({
+          message: 'Successfully upvoted the post',
+        });
+      }
+
+
+    }else if (vote === 'downvote'){
+      await prisma.postVote.deleteMany({
+        where: { postId, userId, isUpvote: true },
+      });
+      return res.status(200).json({
+        message: 'Successfully removed upvote from the post',
+      });
+
     }
 
-    if (hasUpvoted) {
-      post.upvotedBy = post.upvotedBy.filter((id) => id.toString() !== userId);
-      await post.save();
-      return res
-        .status(200)
-        .json({ message: "Successfully removed upvote from the post", post });
-    }
-
-    post.upvotedBy.push(userId);
-    await post.save();
-
-    return res
-      .status(200)
-      .json({ message: "Successfully upvoted the post", post });
   } catch (error) {
-    console.error(`Error upvoting post: ${error.message}`);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error(`Error upvoting comment: ${error.message}`);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
@@ -423,32 +413,7 @@ const downvotePost = async (req, res) => {
 };
 
 
-const filterPosts = (data)=>{
 
-  return data.map((post) => {
-    return {
-      _id: post.id,
-      title: post.title,
-      content: post.content,
-      imageUrl: post.imageUrl,
-      commentCount: post.commentCount,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      user: {
-        _id: post.user.id,
-        username: post.user.username,
-        email: post.user.email,
-        isAdmin: post.user.isAdmin
-      },
-      community: {
-        _id: post.community.id,
-        admin: post.community.adminId,
-        name: post.community.name,
-        bio: post.community.bio
-      },
-    }
-  })
-}
 
 module.exports = {
   createPost,
@@ -457,6 +422,6 @@ module.exports = {
   deletePost,
   updatePost,
   searchPosts,
-  upvotePost,
+  votePost,
   downvotePost,
 };
