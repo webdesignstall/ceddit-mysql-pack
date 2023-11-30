@@ -199,21 +199,37 @@ const updateCommentForPost = async (req, res) => {
   try {
     const { content } = req.body;
     const userId = req.user.userId;
-    const commentId = req.params.id;
-    const comment = await Comment.findById(commentId).populate('commentedBy');
+    const commentId = parseInt(req.params.id);
+
+    const comment = await prisma.comment.findUnique(
+        {
+          where: {id: commentId},
+          include: {
+            user: true
+          }
+        }
+    )
 
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-  
-
-    if (!comment.commentedBy || comment.commentedBy._id.toString() !== userId.toString()) {
-      return res.status(401).json({ message: "Access is denied." });
+    if (!req.user.isAdmin){
+      if (!comment.userId || comment.user.id.toString() !== userId.toString()) {
+        return res.status(401).json({ message: "Access is denied." });
+      }
     }
 
-    comment.content = content;
-    comment.save();
+
+
+   await prisma.comment.update(
+       {
+         where: {id: commentId},
+         data: {
+           content: comment ? content : comment.content
+         }
+       }
+   )
 
     res.status(200).json({ message: "Comment updated successfully", comment });
   } catch (error) {

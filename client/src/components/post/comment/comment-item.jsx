@@ -65,6 +65,8 @@ const CommentItem = ({
     }
   };
 
+
+
   return (
     <Flex
       border={reply && 2}
@@ -127,7 +129,7 @@ const CommentItem = ({
             <Text fontSize="9pt">Reply</Text>
           </Flex>
           {user &&
-            (user.isAdmin || user?.userId === comment?.commentedBy?._id) && (
+            (user.isAdmin || user?.user?.userId === parseInt(comment?.commentedBy?._id)) && (
               <>
                 <EditCommentModel comment={comment} />
                 <DeleteCommentModal comment={comment} />
