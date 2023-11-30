@@ -6,7 +6,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://admin:123@localhost:3306/ceddit"
+  url      = "mysql://root:1234X5678@172.23.0.2:3306/ceddit"
 }
 
 model User {
