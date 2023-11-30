@@ -241,30 +241,55 @@ const deleteCommentForPost = async (req, res) => {
   try {
     const userId = req.user.userId;
     const isAdmin = req.user.isAdmin;
-    const postId = req.params.postId;
-    const commentId = req.params.id;
+    const postId = parseInt(req.params.postId);
+    const commentId = parseInt(req.params.id);
 
-    const post = await Post.findById(postId);
-    console.log(isAdmin)
+    const post = await prisma.post.findUnique(
+        {
+          where: {id: postId}
+        }
+    );
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-    const comment = await Comment.findById(commentId).populate('commentedBy');
+
+    const comment = await prisma.comment.findUnique(
+        {
+          where: {id: commentId},
+          include: {
+            user: true
+          }
+        }
+    );
+
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    if (comment.commentedBy._id.toString() === userId || isAdmin ) {
-      await Comment.deleteOne({ _id: commentId });
+    if (comment.user.id === userId || isAdmin ) {
+      await prisma.comment.delete({
+        where: {id: commentId}
+      });
     }
     else{
       return res.status(401).json({ message: "Access is denied." });
     }
-    await Comment.deleteOne({ _id: commentId });
-    post.commentCount -= 1;
 
-    await post.save();
+    /*await prisma.comment.delete(
+        {
+          where: {id: commentId}
+        }
+    )*/
+
+    await prisma.post.update(
+        {
+          where: {id: postId},
+          data: {
+            commentCount: {decrement: 1}
+          }
+        }
+    )
 
     res.status(200).json({ message: "Comment deleted successfully", comment });
   } catch (error) {
