@@ -50,6 +50,7 @@ const PostItem = ({ post }) => {
     setLoadingDelete(true);
   };
 
+
   return (
     <>
       <Flex
@@ -212,7 +213,7 @@ const PostItem = ({ post }) => {
             <Icon as={IoBookmarkOutline} mr={2} />
             <Text fontSize="9pt">Save</Text>
           </Flex> */}
-            {user && (user.isAdmin || user?.userId === post?.user?._id) && (
+            {user && (user.isAdmin || user?.user?.userId === post?.user?._id) && (
               <Flex
                 align="center"
                 p="8px 10px"
@@ -224,7 +225,7 @@ const PostItem = ({ post }) => {
                 <EditPostModel post={post} />
               </Flex>
             )}
-            {user && (user.isAdmin || user?.userId === post?.user?._id) && (
+            {user && (user.isAdmin || user?.user?.userId === post?.user?._id) && (
               <Flex
                 align="center"
                 p="8px 10px"
