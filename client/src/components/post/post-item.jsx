@@ -23,7 +23,7 @@ import {
 import { FiArrowUpRight } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { isLoggedIn } from "../../utils/auth";
-import { downvotePost, upvotePost } from "../../api/posts";
+import { downvotePost, votePost } from "../../api/posts";
 import moment from "moment";
 import { DeletePostModal } from "../modals/delete-post";
 import { EditPostModel } from "../modals/edit-post-model";
@@ -73,7 +73,7 @@ const PostItem = ({ post }) => {
             color={isUserUpvote() ? "brand.100" : "gray.400"}
             fontSize={22}
             cursor="pointer"
-            onClick={() => upvotePost(post._id, user)}
+            onClick={() => votePost(post._id, user, 'upvote')}
           />
           <Text fontSize="9pt" fontWeight={600}>
             {post ? post?.upvotedBy?.length : 0}
@@ -87,7 +87,7 @@ const PostItem = ({ post }) => {
             color={isUserDownvote() ? "#4379FF" : "gray.400"}
             fontSize={22}
             cursor="pointer"
-            onClick={() => downvotePost(post._id, user)}
+            onClick={() => votePost(post._id, user, 'downvote')}
           />
         </Flex>
         <Flex direction="column" width="100%">

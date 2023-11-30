@@ -40,9 +40,9 @@ const getPost = async (postId) => {
   }
 };
 
-const upvotePost = async (postId, user) => {
+const votePost = async (postId, user, vote) => {
   try {
-    const res = await fetch(BASE_URL + `api/posts/${postId}/upvote`, {
+    const res = await fetch(BASE_URL + `api/posts/${postId}/upvote?vote=${vote}`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -50,6 +50,9 @@ const upvotePost = async (postId, user) => {
         "x-access-token": user.token,
       },
     });
+
+    window.location.reload()
+
     return await res.json();
   } catch (err) {
     console.log(err);
@@ -117,6 +120,6 @@ export {
   getPost,
   deletePost,
   updatePost,
-  upvotePost,
+  votePost,
   downvotePost,
 };

@@ -42,12 +42,11 @@ model Post {
 
 model PostVote {
   id           Int      @id @default(autoincrement())
-  upvote       Boolean @default(false)
-  downvot  Boolean @default(false)
-  post         Post     @relation(fields: [postId], references: [id])
-  postId        Int
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
   user         User     @relation(fields: [userId], references: [id])
   userId        Int
+  isUpvote      Boolean @default(false)
 }
 
 
