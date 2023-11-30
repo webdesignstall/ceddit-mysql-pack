@@ -92,10 +92,24 @@ const register = async (req, res) => {
       },
     });
 
-
     const token = jwt.sign(buildToken(user), process.env.TOKEN_KEY || "secret");
 
-    return res.status(200).json(getUserDict(token, user));
+    const response = {
+      token: token,
+      username: user.username,
+      userId: user.id,
+      isAdmin: user.isAdmin,
+      user: {
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        _id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
+    }
+
+    return res.status(200).json(getUserDict(token, response));
   } catch (error) {
     console.error("Error during registration:", error);
     return res.status(400).json({ error: error.message });
