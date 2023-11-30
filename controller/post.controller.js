@@ -134,6 +134,48 @@ const getPosts = async (req, res) => {
   }
 };
 
+const getCommunityPosts = async (req, res) => {
+
+  const communityId = parseInt(req.params.id);
+  try {
+
+    const community = await prisma.community.findUnique({
+      where: { id: communityId },
+      include: {
+        posts: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true
+              }
+            },
+            community: true,
+          },
+        },
+      },
+    });
+
+    const filteredPosts = await filterPosts(community.posts, postVotes);
+
+    const communitiyFormate = {
+      _id: community.id,
+      adminId: community.adminId,
+      name: community.name,
+      bio: community.bio,
+      subscriberCount: community.subscriberCount,
+      createdAt: community.createdAt,
+      updatedAt: community.updatedAt
+    }
+
+    res.status(200).json({community: {...communitiyFormate, posts: filteredPosts}});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 /*
 const getPosts = async (req, res) => {
   try {
@@ -424,4 +466,5 @@ module.exports = {
   searchPosts,
   votePost,
   downvotePost,
+  getCommunityPosts
 };
