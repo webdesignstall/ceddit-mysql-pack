@@ -21,6 +21,7 @@ model User {
   postVote PostVote[]
   communitySubscriber CommunitySubscriber[]
   comment Comment[]
+  CommentVote   CommentVote[]
 }
 
 model Post {
@@ -76,42 +77,24 @@ model Comment {
   content      String
   createdAt DateTime @default(now())
   postId    Int
-  // Define the relationships
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
   post      Post     @relation(fields: [postId], references: [id])
   parent    Comment? @relation("ParentComment", fields: [parentId], references: [id])
   parentId  Int?
   children  Comment[] @relation("ParentComment")
+  CommentVote   CommentVote[]
 }
 
+model CommentVote {
+  id           Int      @id @default(autoincrement())
+  comment      Comment     @relation(fields: [commentId], references: [id])
+  commentId    Int
+  user         User     @relation(fields: [userId], references: [id])
+  userId        Int
+  isUpvote      Boolean @default(false)
+}
 
-// model Comment {
-//   id        Int      @id @default(autoincrement())
-//   postId Int
-//   userId Int
-//   content   String @db.Text()
-//   parent CommentParentChildren[]
-//   commentVote CommentVote[]
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
-//
-// model CommentParentChildren {
-//   id           Int      @id @default(autoincrement())
-//   parent    Comment? @relation(fields: [parentCommentId], references: [id], map: "comment_parent_fkey")
-//   parentCommentId Int?
-// }
-//
-// model CommentVote {
-//   id           Int      @id @default(autoincrement())
-//   upvote       Boolean @default(false)
-//   downvot  Boolean @default(false)
-//   comment         Comment     @relation(fields: [commentId], references: [id])
-//   commentId        Int
-//   user         User     @relation(fields: [userId], references: [id])
-//   userId        Int
-// }
 
 
 
