@@ -1,64 +1,38 @@
 const Comment = require("../model/comment.model");
 const Post = require("../model/post.model");
-const {PrismaClient} = require('../prisma/generated/client');
-const prisma = new PrismaClient();
 
 const createComment = async (req, res) => {
   try {
     const { content, parentId } = req.body;
-    const postId = parseInt(req.params.postId);
-    const userId = parseInt(req.user.userId);
+    const postId = req.params.postId;
+    const userId = req.user.userId;
 
-    const post = await prisma.post.findUnique({where: {id: postId}});
+    const post = await Post.findById(postId);
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-
     if (!post.comments) {
       post.comments = [];
     }
-
-    const comment = await prisma.comment.create({
-          data: {
-            content,
-            parentCommentId: parentId,
-            postId: postId,
-            userId: userId,
-          }
-        });
-
-    /*await comment.save();
-    post.commentCount += 1;
-    await post.save();*/
-
-    await prisma.post.update({
-      where: {id: postId},
-      data: {
-        commentCount: {increment: 1}
-      }
-    })
-
-    const comments = await prisma.comment.findMany({
-      include: {
-        parent: {
-          select: {
-            // Exclude the password field
-            password: false,
-          },
-        },
-      },
+    const comment = await Comment.create({
+      content,
+      parent: parentId,
+      post: postId,
+      commentedBy: userId,
     });
 
-// Now, the `comments` array contains each comment with the related `commentedBy` user, excluding the password field.
+    await comment.save();
+    post.commentCount += 1;
+    await post.save();
 
-
-
-
-
+    await Comment.populate(comment, {
+      path: "commentedBy",
+      select: "-password",
+    });
     res
       .status(200)
-      .json({ message: "Comment added successfully", comment: comments });
+      .json({ message: "Comment added successfully", comment: comment });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error", error });
