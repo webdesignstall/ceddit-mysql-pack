@@ -1,40 +1,6 @@
-const Post = require("../model/post.model");
-const Community = require("../model/community.model");
-
 const {PrismaClient} = require('../prisma/generated/client');
 
 const prisma = new PrismaClient();
-
-/*const createPost = async (req, res) => {
-  try {
-    const { title, content, imageUrl, communityId } = req.body;
-    const userId = req.user.userId;
-
-    if (!(title && content)) {
-      throw new Error("All input required");
-    }
-    const community = await Community.findById(communityId);
-
-    if (!community) {
-      return res.status(404).json({ message: "community not found" });
-    }
-
-    const post = await Post.create({
-      title,
-      content,
-      imageUrl,
-      user: userId,
-      community: communityId,
-      upvotedBy: [userId],
-    });
-
-    community.posts.push(post);
-    await community.save();
-    res.json(post);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-};*/
 
 const createPost = async (req, res) => {
   try {
@@ -52,16 +18,6 @@ const createPost = async (req, res) => {
         imageUrl,
         userId: userId,
         communityId: parseInt(communityId),
-        // postVote: {
-        //   create: {
-        //     isUpvote: true,  // or false, depending on your logic
-        //     user: {
-        //       connect: {
-        //         id: userId  // Assuming userId is the ID of the user creating the post
-        //       }
-        //     }
-        //   }
-        // }
       }
     });
 
@@ -98,7 +54,7 @@ const filterPosts = async (data, postVotes) => {
             bio: post.community.bio,
           },
           upvotedBy,
-          downvotedBy: [], // You can handle downvotes similarly
+          downvotedBy: [],
         };
       })
   );
@@ -175,36 +131,6 @@ const getCommunityPosts = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-/*
-const getPosts = async (req, res) => {
-  try {
-
-    const posts = await prisma.post.findMany({
-      include: {
-        user: true,
-        community: true,
-        postVote: true
-      }
-    })
-
-    const postVotes = await prisma.postVote.findMany({
-      where: {
-        postId: { in: posts.map((post) => post.id) },
-        userId: { in: posts.map((post) => post.user.id) },
-        isUpvote: true
-      },
-    });
-
-    const filteredPosts = filterPosts(posts, postVotes);
-
-    res.status(200).json(filteredPosts);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-*/
 
 
 const getPostById = async (req, res) => {
@@ -364,9 +290,6 @@ const searchPosts = async (req, res) => {
   }
 };
 
-
-
-
 const votePost = async (req, res) => {
   const postId = parseInt(req.params.postId);
   const vote = req.query.vote;
@@ -453,9 +376,6 @@ const downvotePost = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-
 
 module.exports = {
   createPost,

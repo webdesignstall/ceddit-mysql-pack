@@ -14,6 +14,9 @@ RUN npm install --silent
 # Install bcrypt
 RUN npm install bcrypt
 
+RUN npx prisma generate
+RUN npx prisma migrate dev
+
 # Exports
 EXPOSE 4000
 
