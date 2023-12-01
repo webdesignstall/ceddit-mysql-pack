@@ -21,19 +21,19 @@ services:
     networks:
       - app-network
 
-  mysql:
-    image: mysql:8.0
-    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234X5678
-      MYSQL_DATABASE: ceddit
-    volumes:
-      - data-volume:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - app-network
+#  mysql:
+#    image: mysql:8.0
+#    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+#    restart: unless-stopped
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 1234X5678
+#      MYSQL_DATABASE: ceddit
+#    volumes:
+#      - data-volume:/var/lib/mysql
+#    ports:
+#      - "3306:3306"
+#    networks:
+#      - app-network
 
 
   client:
